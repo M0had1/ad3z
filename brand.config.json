@@ -1,5 +1,5 @@
 {
-    "brand_name": "YourBrand",
+    "brand_name": "testing",
     "brand_domain": "yourbrand.com",
     "brand_hostname": {
         "staging": "staging.yourbrand.com/dashboard",
