@@ -1,6 +1,7 @@
 import { applyMiddleware, createStore } from 'redux';
 import { thunk } from 'redux-thunk';
 import { getLocalizedErrorMessage } from '@/constants/backend-error-messages';
+import { BOT_SPEED } from '@/constants/bot-speed';
 import { createError } from '../../../utils/error';
 import { observer as globalObserver } from '../../../utils/observer';
 import { api_base } from '../../api/api-base';
@@ -96,6 +97,8 @@ export default class TradeEngine extends Balance(Purchase(Sell(OpenContract(Prop
         globalObserver.emit('bot.running');
 
         const validated_trade_options = this.validateTradeOptions(tradeOptions);
+        this.setSpeedMode(validated_trade_options.speed_mode);
+        this.clearTickQueue();
 
         this.tradeOptions = { ...validated_trade_options, symbol: this.options.symbol };
         this.store.dispatch(start());
@@ -144,7 +147,63 @@ export default class TradeEngine extends Balance(Purchase(Sell(OpenContract(Prop
         this.observeProposals();
     }
 
+    watchUltra(watchName) {
+        return new Promise(resolve => {
+            let is_finished = false;
+            let is_waiting_for_tick = false;
+            let unsubscribe;
+
+            const finish = value => {
+                if (is_finished) return;
+                is_finished = true;
+                unsubscribe?.();
+                resolve(value);
+            };
+
+            const checkState = () => {
+                if (is_finished) return;
+
+                const state = this.store.getState();
+                const is_ready_for_tick =
+                    (watchName === 'before' &&
+                        state.scope === constants.BEFORE_PURCHASE &&
+                        state.proposalsReady) ||
+                    (watchName !== 'before' && state.scope === constants.DURING_PURCHASE && state.openContract);
+
+                if (state.scope === constants.STOP) {
+                    finish(false);
+                    return;
+                }
+
+                if (watchName === 'before' && state.scope === constants.DURING_PURCHASE) {
+                    finish(false);
+                    return;
+                }
+
+                if (is_ready_for_tick && !is_waiting_for_tick) {
+                    is_waiting_for_tick = true;
+                    this.waitForNextTick().then(tick => {
+                        is_waiting_for_tick = false;
+                        if (is_finished) return;
+                        if (!tick) {
+                            finish(false);
+                            return;
+                        }
+                        this.pending_tick = tick;
+                        finish(true);
+                    });
+                }
+            };
+
+            unsubscribe = this.store.subscribe(checkState);
+            checkState();
+        });
+    }
+
     watch(watchName) {
+        if (this.speed_mode !== BOT_SPEED.NORMAL) {
+            return this.watchUltra(watchName);
+        }
         if (watchName === 'before') {
             return watchBefore(this.store);
         }

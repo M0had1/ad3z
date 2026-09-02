@@ -68,6 +68,72 @@
         display: flex;
         align-items: center;
         height: 40px;
+        gap: 0.4rem;
+        min-width: 0;
+    }
+
+    &__trade-control {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        min-width: 0;
+        height: 40px;
+    }
+
+    &__speed-selector {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        flex-shrink: 0;
+        height: 100%;
+    }
+
+    &__speed-label {
+        color: var(--text-general);
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    &__speed-options {
+        display: flex;
+        overflow: hidden;
+        border: 1px solid var(--border-normal);
+        border-radius: 0.4rem;
+    }
+
+    &__speed-button {
+        height: 2.8rem;
+        padding: 0 0.6rem;
+        border: 0;
+        border-inline-end: 1px solid var(--border-normal);
+        background: var(--general-main-1);
+        color: var(--text-general);
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        white-space: nowrap;
+
+        &:last-child {
+            border-inline-end: 0;
+        }
+
+        &:hover:not(:disabled) {
+            background: var(--general-section-1);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+        }
+
+        &--selected {
+            background: var(--button-primary-default);
+            color: var(--text-colored-background);
+
+            &:hover:not(:disabled) {
+                background: var(--button-primary-hover);
+            }
+        }
     }
 
     &__overlay {

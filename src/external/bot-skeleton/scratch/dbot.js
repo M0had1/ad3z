@@ -1,5 +1,6 @@
 import { save_types } from '../constants';
 import { config } from '../constants/config';
+import { BOT_SPEED, BOT_SPEED_WAIT_SECONDS } from '@/constants/bot-speed';
 import { api_base } from '../services/api/api-base';
 import ApiHelpers from '../services/api/api-helpers';
 import Interpreter from '../services/tradeEngine/utils/interpreter';
@@ -19,6 +20,7 @@ class DBot {
         this.before_run_funcs = [];
         this.symbol = null;
         this.is_bot_running = false;
+        this.speed_mode = BOT_SPEED.NORMAL;
     }
 
     /**
@@ -276,6 +278,7 @@ class DBot {
             api_base.is_stopping = false;
             const code = this.generateCode();
             if (!this.interpreter.bot.tradeEngine.checkTicksPromiseExists()) this.interpreter = Interpreter();
+            this.interpreter.bot.tradeEngine.setSpeedMode(this.speed_mode);
 
             this.is_bot_running = true;
 
@@ -293,6 +296,12 @@ class DBot {
         }
     }
 
+    setSpeedMode(speed_mode) {
+        if (!Object.values(BOT_SPEED).includes(speed_mode)) return;
+        this.speed_mode = speed_mode;
+        this.interpreter?.bot?.tradeEngine?.setSpeedMode(speed_mode);
+    }
+
     /**
      * Generates the code that is passed to the interpreter.
      * @param {Object} limitations Optional limitations (legacy argument)
@@ -307,6 +316,8 @@ class DBot {
             var BinaryBotPrivateLastTickTime;
             var BinaryBotPrivateTickAnalysisList = [];
             var BinaryBotPrivateHasCalledTradeOptions = false;
+            var BinaryBotPrivateSpeed = ${JSON.stringify(this.speed_mode)};
+            var BinaryBotPrivateLoopDelay = ${BOT_SPEED_WAIT_SECONDS[this.speed_mode] || BOT_SPEED_WAIT_SECONDS[BOT_SPEED.NORMAL]};
 
            
             function recursiveList(list, final_list){
@@ -327,10 +338,18 @@ class DBot {
                 return false;
             }
             function BinaryBotPrivateTickAnalysis() {
-                var currentTickTime = Bot.getLastTick(true);
+                var currentTick = BinaryBotPrivateSpeed !== '${BOT_SPEED.NORMAL}'
+                    ? Bot.getNextTick(true)
+                    : Bot.getLastTick(true);
+                if (!currentTick) {
+                    return;
+                }
+                var currentTickTime = currentTick;
                 while (currentTickTime === 'MarketIsClosed') {
                     sleep(5);
-                    currentTickTime = Bot.getLastTick(true);
+                    currentTickTime = BinaryBotPrivateSpeed !== '${BOT_SPEED.NORMAL}'
+                        ? Bot.getNextTick(true)
+                        : Bot.getLastTick(true);
                 }
                 currentTickTime = currentTickTime.epoch;
                 if (currentTickTime === BinaryBotPrivateLastTickTime) {
@@ -348,7 +367,7 @@ class DBot {
                 BinaryBotPrivateTickAnalysis();
                 BinaryBotPrivateRun(BinaryBotPrivateStart);
                 if (!BinaryBotPrivateHasCalledTradeOptions) {
-                    sleep(1);
+                    sleep(BinaryBotPrivateLoopDelay);
                     continue;
                 }
                 while (watch('before')) {

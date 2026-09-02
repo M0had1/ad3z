@@ -1,6 +1,7 @@
 const getTicksInterface = tradeEngine => {
     return {
         getDelayTickValue: (...args) => tradeEngine.getDelayTickValue(...args),
+        getNextTick: (...args) => tradeEngine.getNextTick(...args),
         getCurrentStat: (...args) => tradeEngine.getCurrentStat(...args),
         getStatList: (...args) => tradeEngine.getStatList(...args),
         getLastTick: (...args) => tradeEngine.getLastTick(...args),

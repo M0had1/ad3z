@@ -1,1 +1,2 @@
 - [Rsbuild workflow ports](rsbuild-workflow-ports.md) — avoid duplicate CLI port flags; pass Replit's port through `PORT` to one script-owned flag.
+- [Bot speed modes](bot-speed-modes.md) — ultra-fast trading must serialize queued ticks and purchase requests instead of overlapping API calls.

@@ -688,6 +688,7 @@ window.Blockly.JavaScript.javascriptGenerator.forBlock.trade_definition_tradeopt
             limitations        : BinaryBotPrivateLimitations,
             duration           : ${duration_value},
             duration_unit      : '${duration_type}',
+            speed_mode         : BinaryBotPrivateSpeed,
             currency           : '${currency}',
             amount             : ${stake_amount},
             prediction         : ${prediction_value || 'undefined'},

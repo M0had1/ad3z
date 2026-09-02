@@ -1,6 +1,7 @@
 /* eslint-disable no-promise-executor-return */
 import debounce from 'lodash.debounce';
 import { getLocalizedErrorMessage } from '@/constants/backend-error-messages';
+import { BOT_SPEED } from '@/constants/bot-speed';
 import { localize } from '@deriv-com/translations';
 import { getLast } from '../../../utils/binary-utils';
 import { observer as globalObserver } from '../../../utils/observer';
@@ -13,9 +14,92 @@ let tickListenerKey;
 
 export default Engine =>
     class Ticks extends Engine {
+        constructor(...args) {
+            super(...args);
+            this.speed_mode = 'normal';
+            this.tick_queue = [];
+            this.tick_waiters = [];
+            this.latest_tick = null;
+            this.pending_tick = null;
+            this.last_queued_tick_epoch = null;
+        }
+
+        setSpeedMode(speed_mode) {
+            this.speed_mode = speed_mode || 'normal';
+            if (this.speed_mode !== 'ultra_fast') {
+                this.clearTickQueue();
+            }
+        }
+
+        clearTickQueue() {
+            this.tick_queue = [];
+            this.latest_tick = null;
+            this.pending_tick = null;
+            this.last_queued_tick_epoch = null;
+            const waiters = this.tick_waiters.splice(0);
+            waiters.forEach(resolve => resolve(null));
+        }
+
+        enqueueTick(tick) {
+            if (!tick || tick.epoch === this.last_queued_tick_epoch) {
+                return;
+            }
+
+            this.last_queued_tick_epoch = tick.epoch;
+            if (this.speed_mode === BOT_SPEED.NORMAL) {
+                return;
+            }
+
+            const resolve = this.tick_waiters.shift();
+            if (resolve) {
+                resolve(tick);
+            } else if (this.speed_mode === BOT_SPEED.ULTRA_FAST) {
+                this.tick_queue.push(tick);
+            } else {
+                this.latest_tick = tick;
+            }
+        }
+
+        waitForNextTick() {
+            if (this.speed_mode === BOT_SPEED.ULTRA_FAST && this.tick_queue.length) {
+                return Promise.resolve(this.tick_queue.shift());
+            }
+            if (this.speed_mode === BOT_SPEED.FAST && this.latest_tick) {
+                const tick = this.latest_tick;
+                this.latest_tick = null;
+                return Promise.resolve(tick);
+            }
+
+            return new Promise(resolve => {
+                this.tick_waiters.push(resolve);
+            });
+        }
+
+        takeNextTick() {
+            if (this.pending_tick) {
+                const tick = this.pending_tick;
+                this.pending_tick = null;
+                return Promise.resolve(tick);
+            }
+
+            return this.waitForNextTick();
+        }
+
+        getNextTick(raw = true, toString = false) {
+            return this.takeNextTick().then(tick => {
+                if (!tick) return null;
+
+                if (raw) return tick;
+
+                const quote = toString ? tick.quote.toFixed(this.getPipSize()) : tick.quote;
+                return quote;
+            });
+        }
+
         async watchTicks(symbol) {
             if (symbol && this.symbol !== symbol) {
                 this.symbol = symbol;
+                this.clearTickQueue();
                 const { ticksService } = this.$scope;
 
                 await ticksService.stopMonitor({
@@ -28,6 +112,7 @@ export default Engine =>
                     }
                     const lastTick = ticks.slice(-1)[0];
                     const { epoch } = lastTick;
+                    this.enqueueTick(lastTick);
                     this.store.dispatch({ type: constants.NEW_TICK, payload: epoch });
                 };
 

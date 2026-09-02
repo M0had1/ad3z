@@ -3,6 +3,7 @@ import { action, computed, makeObservable, observable, reaction, runInAction } f
 import { botNotification } from '@/components/bot-notification/bot-notification';
 import { notification_message } from '@/components/bot-notification/bot-notification-utils';
 import { generateOAuthURL, isSafari, mobileOSDetect, standalone_routes } from '@/components/shared';
+import { BOT_SPEED, TBotSpeed } from '@/constants/bot-speed';
 import { contract_stages, TContractStage } from '@/constants/contract-stage';
 import { run_panel } from '@/constants/run-panel';
 import { ErrorTypes, MessageTypes, observer, unrecoverable_errors } from '@/external/bot-skeleton';
@@ -39,6 +40,7 @@ export default class RunPanelStore {
             dialog_options: observable,
             has_open_contract: observable,
             is_running: observable,
+            speed_mode: observable,
             is_statistics_info_modal_open: observable,
             is_drawer_open: observable,
             is_dialog_open: observable,
@@ -54,6 +56,7 @@ export default class RunPanelStore {
             setContractStage: action,
             setHasOpenContract: action,
             setIsRunning: action,
+            setSpeedMode: action,
             onRunButtonClick: action,
             is_contract_buying_in_progress: observable,
             SetpurchaseInProgress: action,
@@ -103,6 +106,7 @@ export default class RunPanelStore {
     dialog_options = {};
     has_open_contract = false;
     is_running = false;
+    speed_mode: TBotSpeed = BOT_SPEED.NORMAL;
     is_statistics_info_modal_open = false;
     is_drawer_open = true;
     is_dialog_open = false;
@@ -212,9 +216,15 @@ export default class RunPanelStore {
 
             summary_card.clear();
             this.setContractStage(contract_stages.STARTING);
+            this.dbot.setSpeedMode(this.speed_mode);
             this.dbot.runBot();
         });
         this.setShowBotStopMessage(false);
+    };
+
+    setSpeedMode = (speed_mode: TBotSpeed) => {
+        if (!Object.values(BOT_SPEED).includes(speed_mode)) return;
+        this.speed_mode = speed_mode;
     };
 
     onStopButtonClick = () => {

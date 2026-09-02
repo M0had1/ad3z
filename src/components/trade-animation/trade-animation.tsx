@@ -2,6 +2,7 @@ import React from 'react';
 import classNames from 'classnames';
 import { observer } from 'mobx-react-lite';
 import ContractResultOverlay from '@/components/contract-result-overlay';
+import { BOT_SPEED_OPTIONS, TBotSpeed } from '@/constants/bot-speed';
 import { DBOT_TABS } from '@/constants/bot-contents';
 import { contract_stages } from '@/constants/contract-stage';
 import { useStore } from '@/hooks/useStore';
@@ -21,6 +22,43 @@ type TTradeAnimation = {
     should_show_overlay?: boolean;
 };
 
+const SpeedSelector = ({
+    disabled,
+    selectedSpeed,
+    onSpeedChange,
+}: {
+    disabled: boolean;
+    selectedSpeed: TBotSpeed;
+    onSpeedChange: (speed: TBotSpeed) => void;
+}) => (
+    <div className='animation__speed-selector' role='group' aria-label={localize('Bot speed')}>
+        <span className='animation__speed-label'>{localize('Speed')}</span>
+        <div className='animation__speed-options'>
+            {BOT_SPEED_OPTIONS.map(option => (
+                <button
+                    key={option.value}
+                    type='button'
+                    className={classNames('animation__speed-button', {
+                        'animation__speed-button--selected': selectedSpeed === option.value,
+                    })}
+                    aria-pressed={selectedSpeed === option.value}
+                    disabled={disabled}
+                    onClick={() => onSpeedChange(option.value)}
+                    title={
+                        option.value === 'normal'
+                            ? localize('Use the default Deriv trading speed')
+                            : option.value === 'fast'
+                              ? localize('Reduce waiting between bot runs')
+                              : localize('Process each received tick in order')
+                    }
+                >
+                    {localize(option.label)}
+                </button>
+            ))}
+        </div>
+    </div>
+);
+
 const TradeAnimation = observer(({ className, should_show_overlay }: TTradeAnimation) => {
     const { dashboard, run_panel, summary_card, blockly_store } = useStore();
     const { active_tab } = dashboard;
@@ -28,8 +66,15 @@ const TradeAnimation = observer(({ className, should_show_overlay }: TTradeAnima
     const { isMobile } = useDevice();
 
     const { is_contract_completed, profit } = summary_card;
-    const { contract_stage, is_stop_button_visible, is_stop_button_disabled, onRunButtonClick, onStopBotClick } =
-        run_panel;
+    const {
+        contract_stage,
+        is_stop_button_visible,
+        is_stop_button_disabled,
+        onRunButtonClick,
+        onStopBotClick,
+        setSpeedMode,
+        speed_mode,
+    } = run_panel;
     const [shouldDisable, setShouldDisable] = React.useState(false);
     const is_unavailable_for_payment_agent = false;
 
@@ -166,74 +211,81 @@ const TradeAnimation = observer(({ className, should_show_overlay }: TTradeAnima
 
     return (
         <div className={classNames('animation__wrapper', className)}>
-            {should_show_tooltip ? (
-                <div className='run__button_wrapper'>
-                    <Tooltip
-                        alignment={determineTooltipAlignment()}
-                        message={localize('The Run button is disabled because no Bot has been created yet.')}
-                        icon='info'
-                        className='qs__tooltip'
-                    />
-                    <div style={{ opacity: 0.5, marginLeft: '8px' }}>
-                        <Button
-                            is_disabled={true}
-                            className={button_props.class}
-                            id={button_props.id}
-                            icon={button_props.icon}
-                            onClick={() => {
-                                // Disabled button, no action
-                            }}
-                            has_effect
-                            {...(is_stop_button_visible || !is_unavailable_for_payment_agent
-                                ? { primary: true }
-                                : { green: true })}
-                        >
-                            {button_props.text}
-                        </Button>
+            <SpeedSelector
+                disabled={is_stop_button_visible}
+                selectedSpeed={speed_mode}
+                onSpeedChange={setSpeedMode}
+            />
+            <div className='animation__trade-control'>
+                {should_show_tooltip ? (
+                    <div className='run__button_wrapper'>
+                        <Tooltip
+                            alignment={determineTooltipAlignment()}
+                            message={localize('The Run button is disabled because no Bot has been created yet.')}
+                            icon='info'
+                            className='qs__tooltip'
+                        />
+                        <div style={{ opacity: 0.5, marginLeft: '8px' }}>
+                            <Button
+                                is_disabled={true}
+                                className={button_props.class}
+                                id={button_props.id}
+                                icon={button_props.icon}
+                                onClick={() => {
+                                    // Disabled button, no action
+                                }}
+                                has_effect
+                                {...(is_stop_button_visible || !is_unavailable_for_payment_agent
+                                    ? { primary: true }
+                                    : { green: true })}
+                            >
+                                {button_props.text}
+                            </Button>
+                        </div>
                     </div>
-                </div>
-            ) : (
-                <Button
-                    is_disabled={(is_disabled && !is_unavailable_for_payment_agent) || contract_stage === 3}
-                    className={button_props.class}
-                    id={button_props.id}
-                    icon={button_props.icon}
-                    onClick={() => {
-                        setShouldDisable(true);
-                        if (is_stop_button_visible) {
-                            onStopBotClick();
-                            return;
-                        }
-                        onRunButtonClick();
-                        /* [AI] - Analytics event tracking removed - see migrate-docs/MONITORING_PACKAGES.md for re-implementation guide */
-                        /* [/AI] */
-                    }}
-                    has_effect
-                    {...(is_stop_button_visible || !is_unavailable_for_payment_agent
-                        ? { primary: true }
-                        : { green: true })}
+                ) : (
+                    <Button
+                        is_disabled={(is_disabled && !is_unavailable_for_payment_agent) || contract_stage === 3}
+                        className={button_props.class}
+                        id={button_props.id}
+                        icon={button_props.icon}
+                        onClick={() => {
+                            setShouldDisable(true);
+                            if (is_stop_button_visible) {
+                                onStopBotClick();
+                                return;
+                            }
+                            onRunButtonClick();
+                            /* [AI] - Analytics event tracking removed - see migrate-docs/MONITORING_PACKAGES.md for re-implementation guide */
+                            /* [/AI] */
+                        }}
+                        has_effect
+                        {...(is_stop_button_visible || !is_unavailable_for_payment_agent
+                            ? { primary: true }
+                            : { green: true })}
+                    >
+                        {button_props.text}
+                    </Button>
+                )}
+                <div
+                    className={classNames('animation__container', {
+                        'animation--running': contract_stage > 0,
+                        'animation--completed': show_overlay,
+                        'animation--disabled': is_disabled,
+                    })}
                 >
-                    {button_props.text}
-                </Button>
-            )}
-            <div
-                className={classNames('animation__container', className, {
-                    'animation--running': contract_stage > 0,
-                    'animation--completed': show_overlay,
-                    'animation--disabled': is_disabled,
-                })}
-            >
-                {show_overlay && <ContractResultOverlay profit={profit} />}
-                <span className='animation__text'>
-                    <ContractStageText contract_stage={contract_stage} />
-                </span>
-                <div className='animation__progress'>
-                    <div className='animation__progress-line'>
-                        <div className={`animation__progress-bar animation__progress-${contract_stage}`} />
+                    {show_overlay && <ContractResultOverlay profit={profit} />}
+                    <span className='animation__text'>
+                        <ContractStageText contract_stage={contract_stage} />
+                    </span>
+                    <div className='animation__progress'>
+                        <div className='animation__progress-line'>
+                            <div className={`animation__progress-bar animation__progress-${contract_stage}`} />
+                        </div>
+                        {status_classes.map((status_class, i) => (
+                            <CircularWrapper key={`status_class-${status_class}-${i}`} className={status_class} />
+                        ))}
                     </div>
-                    {status_classes.map((status_class, i) => (
-                        <CircularWrapper key={`status_class-${status_class}-${i}`} className={status_class} />
-                    ))}
                 </div>
             </div>
         </div>
