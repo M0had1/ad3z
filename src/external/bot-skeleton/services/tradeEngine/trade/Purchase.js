@@ -1,7 +1,7 @@
 import { BOT_SPEED } from '@/constants/bot-speed';
 import { LogTypes } from '../../../constants/messages';
 import { api_base } from '../../api/api-base';
-import { contractStatus, info, log } from '../utils/broadcast';
+import { contract as broadcastContract, contractStatus, info, log } from '../utils/broadcast';
 import { doUntilDone, getUUID, recoverFromError, tradeOptionToBuy } from '../utils/helpers';
 import { purchaseSuccessful } from './state/actions';
 import { BEFORE_PURCHASE, STOP } from './state/constants';
@@ -15,6 +15,7 @@ export default Engine =>
             super(...args);
             this.ultra_purchase_queue = [];
             this.ultra_purchase_processing = false;
+            this.ultra_contract_ids = new Set();
         }
 
         purchase(contract_type) {
@@ -197,6 +198,13 @@ export default Engine =>
                 data: buy.transaction_id,
                 buy,
             });
+            this.ultra_contract_ids.add(String(buy.contract_id));
+            broadcastContract({
+                accountID: api_base.account_info.loginid,
+                ...buy,
+                transaction_ids: { buy: buy.transaction_id },
+                is_sold: false,
+            });
 
             log(LogTypes.PURCHASE, { transaction_id: buy.transaction_id });
             info({
@@ -214,6 +222,7 @@ export default Engine =>
 
         clearUltraPurchaseQueue() {
             this.ultra_purchase_queue = [];
+            this.ultra_contract_ids.clear();
         }
 
         getPurchaseReference = () => purchase_reference;

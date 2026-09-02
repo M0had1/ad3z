@@ -1,4 +1,5 @@
 import { getRoundedNumber } from '@/components/shared';
+import { BOT_SPEED } from '@/constants/bot-speed';
 import { api_base } from '../../api/api-base';
 import { contract as broadcastContract, contractStatus } from '../utils/broadcast';
 import { openContractReceived, sell } from './state/actions';
@@ -20,6 +21,19 @@ export default Engine =>
                     this.data.contract = contract;
 
                     broadcastContract({ accountID: api_base.account_info.loginid, ...contract });
+
+                    if (this.speed_mode === BOT_SPEED.ULTRA_FAST) {
+                        if (this.isSold) {
+                            this.ultra_contract_ids.delete(String(contract.contract_id));
+                            this.updateTotals(contract);
+                            contractStatus({
+                                id: 'contract.sold',
+                                data: contract.transaction_ids.sell,
+                                contract,
+                            });
+                        }
+                        return;
+                    }
 
                     if (this.isSold) {
                         this.contractId = '';
@@ -60,6 +74,9 @@ export default Engine =>
         }
 
         expectedContractId(contractId) {
+            if (this.speed_mode === BOT_SPEED.ULTRA_FAST) {
+                return this.ultra_contract_ids?.has(String(contractId));
+            }
             return this.contractId && contractId === this.contractId;
         }
 
