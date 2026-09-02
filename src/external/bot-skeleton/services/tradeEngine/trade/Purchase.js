@@ -1,16 +1,27 @@
+import { BOT_SPEED } from '@/constants/bot-speed';
 import { LogTypes } from '../../../constants/messages';
 import { api_base } from '../../api/api-base';
 import { contractStatus, info, log } from '../utils/broadcast';
 import { doUntilDone, getUUID, recoverFromError, tradeOptionToBuy } from '../utils/helpers';
 import { purchaseSuccessful } from './state/actions';
-import { BEFORE_PURCHASE } from './state/constants';
+import { BEFORE_PURCHASE, STOP } from './state/constants';
 
 let delayIndex = 0;
 let purchase_reference;
 
 export default Engine =>
     class Purchase extends Engine {
+        constructor(...args) {
+            super(...args);
+            this.ultra_purchase_queue = [];
+            this.ultra_purchase_processing = false;
+        }
+
         purchase(contract_type) {
+            if (this.speed_mode === BOT_SPEED.ULTRA_FAST) {
+                return this.enqueueUltraPurchase(contract_type);
+            }
+
             // Prevent calling purchase twice
             if (this.store.getState().scope !== BEFORE_PURCHASE) {
                 return Promise.resolve();
@@ -114,6 +125,97 @@ export default Engine =>
                 delayIndex++
             ).then(onSuccess);
         }
+        enqueueUltraPurchase(contract_type) {
+            this.ultra_purchase_queue.push(contract_type);
+            this.processUltraPurchaseQueue();
+            return Promise.resolve();
+        }
+
+        async processUltraPurchaseQueue() {
+            if (this.ultra_purchase_processing) return;
+
+            this.ultra_purchase_processing = true;
+            while (this.ultra_purchase_queue.length && !api_base.is_stopping) {
+                const contract_type = this.ultra_purchase_queue.shift();
+                try {
+                    await this.executeUltraPurchase(contract_type);
+                } catch (error) {
+                    this.observer.emit('Error', error);
+                }
+            }
+            this.ultra_purchase_processing = false;
+        }
+
+        waitForUltraProposals() {
+            if (this.store.getState().proposalsReady) {
+                return Promise.resolve(true);
+            }
+
+            return new Promise(resolve => {
+                const unsubscribe = this.store.subscribe(() => {
+                    const { proposalsReady, scope } = this.store.getState();
+                    if (proposalsReady) {
+                        unsubscribe();
+                        resolve(true);
+                    } else if (scope === STOP) {
+                        unsubscribe();
+                        resolve(false);
+                    }
+                });
+            });
+        }
+
+        async executeUltraPurchase(contract_type) {
+            let action;
+            let ask_price;
+
+            if (this.is_proposal_subscription_required) {
+                if (!(await this.waitForUltraProposals())) return;
+
+                const { id, askPrice } = this.selectProposal(contract_type);
+                action = () => api_base.api.send({ buy: id, price: askPrice });
+                ask_price = askPrice;
+            } else {
+                action = () => api_base.api.send(tradeOptionToBuy(contract_type, this.tradeOptions));
+                ask_price = this.tradeOptions.amount;
+            }
+
+            contractStatus({
+                id: 'contract.purchase_sent',
+                data: ask_price,
+            });
+
+            const response = await doUntilDone(action);
+            const { buy } = response;
+
+            if (!buy) {
+                throw new Error('Ultra-fast purchase returned no contract');
+            }
+
+            contractStatus({
+                id: 'contract.purchase_received',
+                data: buy.transaction_id,
+                buy,
+            });
+
+            log(LogTypes.PURCHASE, { transaction_id: buy.transaction_id });
+            info({
+                accountID: this.accountInfo.loginid,
+                totalRuns: this.updateAndReturnTotalRuns(),
+                transaction_ids: { buy: buy.transaction_id },
+                contract_type,
+                buy_price: buy.buy_price,
+            });
+
+            if (this.is_proposal_subscription_required) {
+                this.renewProposalsOnPurchase();
+            }
+        }
+
+        clearUltraPurchaseQueue() {
+            this.ultra_purchase_queue = [];
+        }
+
         getPurchaseReference = () => purchase_reference;
         regeneratePurchaseReference = () => {
             purchase_reference = getUUID();

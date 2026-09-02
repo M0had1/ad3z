@@ -364,23 +364,35 @@ class DBot {
             ${window.Blockly.JavaScript.javascriptGenerator.workspaceToCode(this.workspace)}
             BinaryBotPrivateRun(BinaryBotPrivateInit);
             while (true) {
-                BinaryBotPrivateTickAnalysis();
-                BinaryBotPrivateRun(BinaryBotPrivateStart);
-                if (!BinaryBotPrivateHasCalledTradeOptions) {
-                    sleep(BinaryBotPrivateLoopDelay);
-                    continue;
-                }
-                while (watch('before')) {
+                if (BinaryBotPrivateSpeed === '${BOT_SPEED.ULTRA_FAST}') {
                     BinaryBotPrivateTickAnalysis();
+                    if (!BinaryBotPrivateHasCalledTradeOptions) {
+                        BinaryBotPrivateRun(BinaryBotPrivateStart);
+                    }
+                    if (!BinaryBotPrivateHasCalledTradeOptions) {
+                        sleep(BinaryBotPrivateLoopDelay);
+                        continue;
+                    }
                     BinaryBotPrivateRun(BinaryBotPrivateBeforePurchase);
-                }
-                while (watch('during')) {
+                } else {
                     BinaryBotPrivateTickAnalysis();
-                    BinaryBotPrivateRun(BinaryBotPrivateDuringPurchase);
-                }
-                BinaryBotPrivateTickAnalysis();
-                if (!BinaryBotPrivateRun(BinaryBotPrivateAfterPurchase)) {
-                    break;
+                    BinaryBotPrivateRun(BinaryBotPrivateStart);
+                    if (!BinaryBotPrivateHasCalledTradeOptions) {
+                        sleep(BinaryBotPrivateLoopDelay);
+                        continue;
+                    }
+                    while (watch('before')) {
+                        BinaryBotPrivateTickAnalysis();
+                        BinaryBotPrivateRun(BinaryBotPrivateBeforePurchase);
+                    }
+                    while (watch('during')) {
+                        BinaryBotPrivateTickAnalysis();
+                        BinaryBotPrivateRun(BinaryBotPrivateDuringPurchase);
+                    }
+                    BinaryBotPrivateTickAnalysis();
+                    if (!BinaryBotPrivateRun(BinaryBotPrivateAfterPurchase)) {
+                        break;
+                    }
                 }
             }
             

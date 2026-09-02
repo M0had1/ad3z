@@ -38,6 +38,7 @@ export default Engine =>
             this.last_queued_tick_epoch = null;
             const waiters = this.tick_waiters.splice(0);
             waiters.forEach(resolve => resolve(null));
+            this.clearUltraPurchaseQueue?.();
         }
 
         enqueueTick(tick) {
