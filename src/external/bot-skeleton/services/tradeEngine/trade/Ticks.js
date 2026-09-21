@@ -22,6 +22,7 @@ export default Engine =>
             this.latest_tick = null;
             this.pending_tick = null;
             this.last_queued_tick_epoch = null;
+            this.last_processed_tick_epoch = null;
         }
 
         setSpeedMode(speed_mode) {
@@ -36,6 +37,7 @@ export default Engine =>
             this.latest_tick = null;
             this.pending_tick = null;
             this.last_queued_tick_epoch = null;
+            this.last_processed_tick_epoch = null;
             const waiters = this.tick_waiters.splice(0);
             waiters.forEach(resolve => resolve(null));
             this.clearUltraPurchaseQueue?.();
@@ -112,9 +114,15 @@ export default Engine =>
                         this.checkProposalReady();
                     }
                     const lastTick = ticks.slice(-1)[0];
-                    const { epoch } = lastTick;
-                    this.enqueueTick(lastTick);
-                    this.store.dispatch({ type: constants.NEW_TICK, payload: epoch });
+                    const newTicks = this.last_processed_tick_epoch
+                        ? ticks.filter(tick => tick.epoch > this.last_processed_tick_epoch)
+                        : [lastTick];
+                    newTicks.forEach(newTick => {
+                        const { epoch } = newTick;
+                        this.last_processed_tick_epoch = epoch;
+                        this.enqueueTick(newTick);
+                        this.store.dispatch({ type: constants.NEW_TICK, payload: epoch });
+                    });
                 };
 
                 const key = await ticksService.monitor({ symbol, callback });
