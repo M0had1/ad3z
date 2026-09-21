@@ -373,7 +373,18 @@ class DBot {
                         sleep(BinaryBotPrivateLoopDelay);
                         continue;
                     }
-                    BinaryBotPrivateRun(BinaryBotPrivateBeforePurchase);
+                    while (watch('before')) {
+                        BinaryBotPrivateTickAnalysis();
+                        BinaryBotPrivateRun(BinaryBotPrivateBeforePurchase);
+                    }
+                    while (watch('during')) {
+                        BinaryBotPrivateTickAnalysis();
+                        BinaryBotPrivateRun(BinaryBotPrivateDuringPurchase);
+                    }
+                    BinaryBotPrivateTickAnalysis();
+                    if (!BinaryBotPrivateRun(BinaryBotPrivateAfterPurchase)) {
+                        break;
+                    }
                 } else {
                     BinaryBotPrivateTickAnalysis();
                     BinaryBotPrivateRun(BinaryBotPrivateStart);

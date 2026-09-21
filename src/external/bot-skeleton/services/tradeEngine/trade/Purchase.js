@@ -193,12 +193,15 @@ export default Engine =>
                 throw new Error('Ultra-fast purchase returned no contract');
             }
 
+            this.isSold = false;
+
             contractStatus({
                 id: 'contract.purchase_received',
                 data: buy.transaction_id,
                 buy,
             });
             this.ultra_contract_ids.add(String(buy.contract_id));
+            this.store.dispatch(purchaseSuccessful());
             broadcastContract({
                 accountID: api_base.account_info.loginid,
                 ...buy,

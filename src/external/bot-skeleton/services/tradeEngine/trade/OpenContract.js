@@ -31,6 +31,12 @@ export default Engine =>
                                 data: contract.transaction_ids.sell,
                                 contract,
                             });
+
+                            if (this.afterPromise) {
+                                this.afterPromise();
+                            }
+
+                            this.store.dispatch(sell());
                         }
                         return;
                     }
