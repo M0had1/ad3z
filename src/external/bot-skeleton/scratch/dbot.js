@@ -366,9 +366,7 @@ class DBot {
             while (true) {
                 if (BinaryBotPrivateSpeed === '${BOT_SPEED.ULTRA_FAST}') {
                     BinaryBotPrivateTickAnalysis();
-                    if (!BinaryBotPrivateHasCalledTradeOptions) {
-                        BinaryBotPrivateRun(BinaryBotPrivateStart);
-                    }
+                    BinaryBotPrivateRun(BinaryBotPrivateStart);
                     if (!BinaryBotPrivateHasCalledTradeOptions) {
                         sleep(BinaryBotPrivateLoopDelay);
                         continue;
