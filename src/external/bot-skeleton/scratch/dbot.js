@@ -366,23 +366,14 @@ class DBot {
             while (true) {
                 if (BinaryBotPrivateSpeed === '${BOT_SPEED.ULTRA_FAST}') {
                     BinaryBotPrivateTickAnalysis();
-                    BinaryBotPrivateRun(BinaryBotPrivateStart);
+                    if (!BinaryBotPrivateHasCalledTradeOptions) {
+                        BinaryBotPrivateRun(BinaryBotPrivateStart);
+                    }
                     if (!BinaryBotPrivateHasCalledTradeOptions) {
                         sleep(BinaryBotPrivateLoopDelay);
                         continue;
                     }
-                    while (watch('before')) {
-                        BinaryBotPrivateTickAnalysis();
-                        BinaryBotPrivateRun(BinaryBotPrivateBeforePurchase);
-                    }
-                    while (watch('during')) {
-                        BinaryBotPrivateTickAnalysis();
-                        BinaryBotPrivateRun(BinaryBotPrivateDuringPurchase);
-                    }
-                    BinaryBotPrivateTickAnalysis();
-                    if (!BinaryBotPrivateRun(BinaryBotPrivateAfterPurchase)) {
-                        break;
-                    }
+                    BinaryBotPrivateRun(BinaryBotPrivateBeforePurchase);
                 } else {
                     BinaryBotPrivateTickAnalysis();
                     BinaryBotPrivateRun(BinaryBotPrivateStart);
