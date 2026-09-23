@@ -18,7 +18,7 @@ window.Blockly.Blocks.trade_definition_contracttype = {
             colourSecondary: window.Blockly.Colours.Special1.colourSecondary,
             colourTertiary: window.Blockly.Colours.Special1.colourTertiary,
             tooltip: localize(
-                'If the contract type is “Both”, then the Purchase Conditions should include both Rise and Fall using the “Conditional Block"'
+                'If the contract type is "Both", then the Purchase Conditions should include both Rise and Fall using the "Conditional Block"'
             ),
             previousStatement: null,
             nextStatement: null,
@@ -57,6 +57,13 @@ window.Blockly.Blocks.trade_definition_contracttype = {
                     event_group: event.group,
                     default_value: is_load_event ? contract_type_list.getValue() : undefined,
                 });
+            } else if (event.name === 'TYPE_LIST' && event.blockId === this.id) {
+                // Notify purchase blocks to update when contract type changes
+                const trade_type = this.workspace.getTradeDefinitionBlock()?.getChildByType('trade_definition_tradetype')?.getFieldValue('TRADETYPE_LIST');
+                if (trade_type === 'higherlower') {
+                    const purchase_blocks = this.workspace.getAllBlocks().filter(b => b.type === 'purchase');
+                    purchase_blocks.forEach(block => block.populatePurchaseList(event));
+                }
             }
         }
     },

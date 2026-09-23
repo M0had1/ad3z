@@ -27,6 +27,24 @@ window.Blockly.Blocks.purchase = {
             category: window.Blockly.Categories.Before_Purchase,
         };
     },
+    mutationToDom() {
+        const container = document.createElement('mutation');
+        const is_hedging = this.getFieldValue('PURCHASE_LIST') === 'hedging';
+        container.setAttribute('hedging', is_hedging);
+        if (is_hedging) {
+            container.setAttribute('higher_offset', this.getFieldValue('HIGHER_OFFSET') || '1');
+            container.setAttribute('lower_offset', this.getFieldValue('LOWER_OFFSET') || '1');
+        }
+        return container;
+    },
+    domToMutation(xmlElement) {
+        const is_hedging = xmlElement.getAttribute('hedging') === 'true';
+        if (is_hedging) {
+            this.updateHedgingInputs(true);
+            this.setFieldValue(xmlElement.getAttribute('higher_offset') || '1', 'HIGHER_OFFSET');
+            this.setFieldValue(xmlElement.getAttribute('lower_offset') || '1', 'LOWER_OFFSET');
+        }
+    },
     meta() {
         return {
             display_name: localize('Purchase'),
@@ -64,7 +82,9 @@ window.Blockly.Blocks.purchase = {
 
         const trade_type_block = trade_definition_block.getChildByType('trade_definition_tradetype');
         const trade_type = trade_type_block?.getFieldValue('TRADETYPE_LIST');
-        const is_higherlower = trade_type === 'higherlower';
+        const contract_type_block = trade_definition_block.getChildByType('trade_definition_contracttype');
+        const contract_type = contract_type_block?.getFieldValue('TYPE_LIST');
+        const is_higherlower = trade_type === 'higherlower' && contract_type === 'both';
 
         if (is_higherlower && !this.getInput('BARRIER_OFFSET')) {
             this.appendValueInput('BARRIER_OFFSET')
@@ -72,6 +92,41 @@ window.Blockly.Blocks.purchase = {
                 .appendField('barrier offset:');
         } else if (!is_higherlower && this.getInput('BARRIER_OFFSET')) {
             this.removeInput('BARRIER_OFFSET', true);
+        }
+
+        if (is_higherlower && !this.getInput('HIGHER_OFFSET')) {
+            this.appendDummyInput('HIGHER_LABEL').appendField(localize('Higher offset:'));
+            this.appendValueInput('HIGHER_OFFSET')
+                .setCheck('Number')
+                .appendField(new window.Blockly.FieldNumber(1, 0), 'HIGHER_OFFSET');
+            this.appendDummyInput('LOWER_LABEL').appendField(localize('Lower offset:'));
+            this.appendValueInput('LOWER_OFFSET')
+                .setCheck('Number')
+                .appendField(new window.Blockly.FieldNumber(1, 0), 'LOWER_OFFSET');
+        } else if (!is_higherlower && this.getInput('HIGHER_OFFSET')) {
+            this.removeInput('HIGHER_LABEL', true);
+            this.removeInput('HIGHER_OFFSET', true);
+            this.removeInput('LOWER_LABEL', true);
+            this.removeInput('LOWER_OFFSET', true);
+        }
+    },
+    updateHedgingInputs(show) {
+        if (show) {
+            if (!this.getInput('HIGHER_OFFSET')) {
+                this.appendDummyInput('HIGHER_LABEL').appendField(localize('Higher offset:'));
+                this.appendValueInput('HIGHER_OFFSET')
+                    .setCheck('Number')
+                    .appendField(new window.Blockly.FieldNumber(1, 0), 'HIGHER_OFFSET');
+                this.appendDummyInput('LOWER_LABEL').appendField(localize('Lower offset:'));
+                this.appendValueInput('LOWER_OFFSET')
+                    .setCheck('Number')
+                    .appendField(new window.Blockly.FieldNumber(1, 0), 'LOWER_OFFSET');
+            }
+        } else {
+            this.removeInput('HIGHER_LABEL', true);
+            this.removeInput('HIGHER_OFFSET', true);
+            this.removeInput('LOWER_LABEL', true);
+            this.removeInput('LOWER_OFFSET', true);
         }
     },
     populatePurchaseList(event) {
@@ -86,11 +141,20 @@ window.Blockly.Blocks.purchase = {
             const purchase_type = purchase_type_list.getValue();
             const contract_type_options = getContractTypeOptions(contract_type, trade_type);
 
+            // Add hedging option for higherlower with both contract type
+            if (trade_type === 'higherlower' && contract_type === 'both') {
+                contract_type_options.unshift([localize('Hedging (Both Higher and Lower)'), 'hedging']);
+            }
+
             purchase_type_list.updateOptions(contract_type_options, {
                 default_value: purchase_type,
                 event_group: event.group,
                 should_pretend_empty: true,
             });
+
+            // Update hedging inputs based on selection
+            const is_hedging = purchase_type === 'hedging';
+            this.updateHedgingInputs(is_hedging);
         }
     },
     customContextMenu(menu) {
@@ -103,6 +167,24 @@ window.Blockly.Blocks.purchase = {
 
 window.Blockly.JavaScript.javascriptGenerator.forBlock.purchase = block => {
     const purchaseList = block.getFieldValue('PURCHASE_LIST');
+
+    // Handle hedging mode - purchase both CALL and PUT simultaneously
+    if (purchaseList === 'hedging') {
+        const higherOffset = window.Blockly.JavaScript.javascriptGenerator.valueToCode(
+            block,
+            'HIGHER_OFFSET',
+            window.Blockly.JavaScript.javascriptGenerator.ORDER_ATOMIC
+        ) || '1';
+        const lowerOffset = window.Blockly.JavaScript.javascriptGenerator.valueToCode(
+            block,
+            'LOWER_OFFSET',
+            window.Blockly.JavaScript.javascriptGenerator.ORDER_ATOMIC
+        ) || '1';
+
+        const code = `Bot.purchase('CALL', ${higherOffset});\nBot.purchase('PUT', -${lowerOffset});\n`;
+        return code;
+    }
+
     const barrierOffset = window.Blockly.JavaScript.javascriptGenerator.valueToCode(
         block,
         'BARRIER_OFFSET',

@@ -187,7 +187,7 @@ export default class QuickStrategyStore implements IQuickStrategyStore {
                 el_block.innerHTML = value;
             });
         };
-        const { unit, action, type, growth_rate, ...rest_data } = data;
+        const { unit, action, type, growth_rate, higher_offset, lower_offset, ...rest_data } = data;
         const fields_to_update = {
             market,
             submarket,
@@ -209,6 +209,39 @@ export default class QuickStrategyStore implements IQuickStrategyStore {
                 modifyFieldDropdownValues(key, value);
             }
         });
+
+        // Handle hedging: if purchase type is hedging, modify the before_purchase block
+        // to include two purchase blocks with hedging mutation
+        if (type === 'hedging') {
+            const before_purchase_block = strategy_dom?.querySelector('block[type="before_purchase"]');
+            if (before_purchase_block) {
+                const statement = before_purchase_block.querySelector('statement[name="BEFOREPURCHASE_STACK"]');
+                if (statement) {
+                    // Clear existing purchase blocks
+                    statement.innerHTML = '';
+                    
+                    // Create hedging purchase block
+                    const purchase_block = document.createElement('block');
+                    purchase_block.setAttribute('type', 'purchase');
+                    purchase_block.setAttribute('id', 'purchase_hedging_' + Date.now());
+                    
+                    // Add mutation for hedging
+                    const mutation = document.createElement('mutation');
+                    mutation.setAttribute('hedging', 'true');
+                    mutation.setAttribute('higher_offset', higher_offset || '1');
+                    mutation.setAttribute('lower_offset', lower_offset || '1');
+                    purchase_block.appendChild(mutation);
+                    
+                    // Add field for hedging
+                    const field = document.createElement('field');
+                    field.setAttribute('name', 'PURCHASE_LIST');
+                    field.textContent = 'hedging';
+                    purchase_block.appendChild(field);
+                    
+                    statement.appendChild(purchase_block);
+                }
+            }
+        }
 
         const { derivWorkspace: workspace } = Blockly;
 

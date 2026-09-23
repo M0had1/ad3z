@@ -16,6 +16,18 @@ export default Engine =>
             this.ultra_purchase_queue = [];
             this.ultra_purchase_processing = false;
             this.ultra_contract_ids = new Set();
+            this.purchasesThisRound = 0;
+            this.wasInBeforePurchase = false;
+
+            this.store.subscribe(() => {
+                const { scope } = this.store.getState();
+                if (scope === BEFORE_PURCHASE && !this.wasInBeforePurchase) {
+                    this.purchasesThisRound = 0;
+                    this.wasInBeforePurchase = true;
+                } else if (scope !== BEFORE_PURCHASE) {
+                    this.wasInBeforePurchase = false;
+                }
+            });
         }
 
         purchase(contract_type, barrier_offset) {
@@ -23,10 +35,11 @@ export default Engine =>
                 return this.enqueueUltraPurchase(contract_type, barrier_offset);
             }
 
-            // Prevent calling purchase twice
-            if (this.store.getState().scope !== BEFORE_PURCHASE) {
+            if (!this.wasInBeforePurchase) {
                 return Promise.resolve();
             }
+
+            this.purchasesThisRound++;
 
             const onSuccess = response => {
                 // Don't unnecessarily send a forget request for a purchased contract.

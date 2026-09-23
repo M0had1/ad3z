@@ -44,6 +44,16 @@ const ContractTypes: React.FC<TContractTypes> = observer(({ name }) => {
             const getContractTypes = async () => {
                 const { contracts_for } = (ApiHelpers?.instance as unknown as TApiHelpersInstance) ?? {};
                 const categories = await contracts_for?.getContractTypes?.(tradetype);
+                
+                // Add hedging option for higherlower trade type with localization
+                if (tradetype === 'higherlower') {
+                    const hedgingOption = {
+                        value: 'hedging',
+                        text: localize('Hedging (Both Higher and Lower)'),
+                    };
+                    categories.unshift(hedgingOption);
+                }
+                
                 setList(categories);
                 const has_selected = categories?.some(contract => contract.value === selected);
                 if (!has_selected) {

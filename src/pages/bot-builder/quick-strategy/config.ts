@@ -132,6 +132,38 @@ const NUMBER_DEFAULT_VALIDATION = (): TValidationItem => ({
     getMessage: (min: string | number) => localize('Must be a number higher than {{ min }}', { min: Number(min) - 1 }),
 });
 
+const LABEL_HIGHER_OFFSET = (): TConfigItem => ({
+    type: 'label',
+    label: localize('Higher offset'),
+    description: localize('The offset for the Higher contract.'),
+    should_have: [{ key: 'type', value: 'hedging' }],
+    hide_without_should_have: true,
+});
+
+const HIGHER_OFFSET = (): TConfigItem => ({
+    type: 'number',
+    name: 'higher_offset',
+    validation: ['number', 'required', 'ceil'],
+    should_have: [{ key: 'type', value: 'hedging' }],
+    hide_without_should_have: true,
+});
+
+const LABEL_LOWER_OFFSET = (): TConfigItem => ({
+    type: 'label',
+    label: localize('Lower offset'),
+    description: localize('The offset for the Lower contract.'),
+    should_have: [{ key: 'type', value: 'hedging' }],
+    hide_without_should_have: true,
+});
+
+const LOWER_OFFSET = (): TConfigItem => ({
+    type: 'number',
+    name: 'lower_offset',
+    validation: ['number', 'required', 'ceil'],
+    should_have: [{ key: 'type', value: 'hedging' }],
+    hide_without_should_have: true,
+});
+
 const LABEL_SYMBOL = (): TConfigItem => ({
     type: 'label',
     label: localize('Asset'),
@@ -332,6 +364,10 @@ export const STRATEGIES = (): TStrategies => ({
                 LABEL_DURATION(),
                 DURATION_TYPE(),
                 DURATION(),
+                LABEL_HIGHER_OFFSET(),
+                HIGHER_OFFSET(),
+                LABEL_LOWER_OFFSET(),
+                LOWER_OFFSET(),
             ],
             [
                 LABEL_PROFIT(),
@@ -365,6 +401,10 @@ export const STRATEGIES = (): TStrategies => ({
                 LABEL_DURATION(),
                 DURATION_TYPE(),
                 DURATION(),
+                LABEL_HIGHER_OFFSET(),
+                HIGHER_OFFSET(),
+                LABEL_LOWER_OFFSET(),
+                LOWER_OFFSET(),
             ],
             [
                 LABEL_PROFIT(),
@@ -398,6 +438,10 @@ export const STRATEGIES = (): TStrategies => ({
                 LABEL_DURATION(),
                 DURATION_TYPE(),
                 DURATION(),
+                LABEL_HIGHER_OFFSET(),
+                HIGHER_OFFSET(),
+                LABEL_LOWER_OFFSET(),
+                LOWER_OFFSET(),
             ],
             [LABEL_PROFIT(), PROFIT(), LABEL_LOSS(), LOSS(), CHECKBOX_MAX_STAKE(), MAX_STAKE()],
         ],
@@ -422,6 +466,10 @@ export const STRATEGIES = (): TStrategies => ({
                 LABEL_DURATION(),
                 DURATION_TYPE(),
                 DURATION(),
+                LABEL_HIGHER_OFFSET(),
+                HIGHER_OFFSET(),
+                LABEL_LOWER_OFFSET(),
+                LOWER_OFFSET(),
             ],
             [
                 LABEL_PROFIT(),
@@ -455,6 +503,10 @@ export const STRATEGIES = (): TStrategies => ({
                 LABEL_DURATION(),
                 DURATION_TYPE(),
                 DURATION(),
+                LABEL_HIGHER_OFFSET(),
+                HIGHER_OFFSET(),
+                LABEL_LOWER_OFFSET(),
+                LOWER_OFFSET(),
             ],
             [
                 LABEL_PROFIT(),
@@ -488,6 +540,10 @@ export const STRATEGIES = (): TStrategies => ({
                 LABEL_DURATION(),
                 DURATION_TYPE(),
                 DURATION(),
+                LABEL_HIGHER_OFFSET(),
+                HIGHER_OFFSET(),
+                LABEL_LOWER_OFFSET(),
+                LOWER_OFFSET(),
             ],
             [LABEL_PROFIT(), PROFIT(), LABEL_LOSS(), LOSS()],
         ],
