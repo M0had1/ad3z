@@ -17,17 +17,7 @@ export default Engine =>
             this.ultra_purchase_processing = false;
             this.ultra_contract_ids = new Set();
             this.purchasesThisRound = 0;
-            this.wasInBeforePurchase = false;
-
-            this.store.subscribe(() => {
-                const { scope } = this.store.getState();
-                if (scope === BEFORE_PURCHASE && !this.wasInBeforePurchase) {
-                    this.purchasesThisRound = 0;
-                    this.wasInBeforePurchase = true;
-                } else if (scope !== BEFORE_PURCHASE) {
-                    this.wasInBeforePurchase = false;
-                }
-            });
+            this.lastScope = null;
         }
 
         purchase(contract_type, barrier_offset) {
@@ -35,7 +25,16 @@ export default Engine =>
                 return this.enqueueUltraPurchase(contract_type, barrier_offset);
             }
 
-            if (!this.wasInBeforePurchase) {
+            const currentScope = this.store.getState().scope;
+            
+            // Detect new before_purchase round
+            if (currentScope === BEFORE_PURCHASE && this.lastScope !== BEFORE_PURCHASE) {
+                this.purchasesThisRound = 0;
+            }
+            this.lastScope = currentScope;
+
+            // Only allow purchases during BEFORE_PURCHASE scope
+            if (currentScope !== BEFORE_PURCHASE) {
                 return Promise.resolve();
             }
 
