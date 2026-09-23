@@ -18,9 +18,9 @@ export default Engine =>
             this.ultra_contract_ids = new Set();
         }
 
-        purchase(contract_type) {
+        purchase(contract_type, barrier_offset) {
             if (this.speed_mode === BOT_SPEED.ULTRA_FAST) {
-                return this.enqueueUltraPurchase(contract_type);
+                return this.enqueueUltraPurchase(contract_type, barrier_offset);
             }
 
             // Prevent calling purchase twice
@@ -126,8 +126,8 @@ export default Engine =>
                 delayIndex++
             ).then(onSuccess);
         }
-        enqueueUltraPurchase(contract_type) {
-            this.ultra_purchase_queue.push(contract_type);
+        enqueueUltraPurchase(contract_type, barrier_offset) {
+            this.ultra_purchase_queue.push({ contract_type, barrier_offset });
             this.processUltraPurchaseQueue();
             return Promise.resolve();
         }
@@ -137,9 +137,9 @@ export default Engine =>
 
             this.ultra_purchase_processing = true;
             while (this.ultra_purchase_queue.length && !api_base.is_stopping) {
-                const contract_type = this.ultra_purchase_queue.shift();
+                const { contract_type, barrier_offset } = this.ultra_purchase_queue.shift();
                 try {
-                    await this.executeUltraPurchase(contract_type);
+                    await this.executeUltraPurchase(contract_type, barrier_offset);
                 } catch (error) {
                     this.observer.emit('Error', error);
                 }
@@ -166,7 +166,7 @@ export default Engine =>
             });
         }
 
-        async executeUltraPurchase(contract_type) {
+        async executeUltraPurchase(contract_type, barrier_offset) {
             let action;
             let ask_price;
 
@@ -177,7 +177,7 @@ export default Engine =>
                 action = () => api_base.api.send({ buy: id, price: askPrice });
                 ask_price = askPrice;
             } else {
-                action = () => api_base.api.send(tradeOptionToBuy(contract_type, this.tradeOptions));
+                action = () => api_base.api.send(tradeOptionToBuy(contract_type, this.tradeOptions, barrier_offset));
                 ask_price = this.tradeOptions.amount;
             }
 

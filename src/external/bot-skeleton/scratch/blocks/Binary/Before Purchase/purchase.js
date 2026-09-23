@@ -42,9 +42,11 @@ window.Blockly.Blocks.purchase = {
         }
 
         if (event.type === window.Blockly.Events.BLOCK_CREATE && event.ids.includes(this.id)) {
+            this.updateBarrierOffsetInput();
             this.populatePurchaseList(event);
         } else if (event.type === window.Blockly.Events.BLOCK_CHANGE) {
             if (event.name === 'TYPE_LIST' || event.name === 'TRADETYPE_LIST') {
+                this.updateBarrierOffsetInput();
                 this.populatePurchaseList(event);
             }
         } else if (event.type === window.Blockly.Events.BLOCK_DRAG && !event.isStart && event.blockId === this.id) {
@@ -54,6 +56,22 @@ window.Blockly.Blocks.purchase = {
             if (purchase_options[0][0] === '') {
                 this.populatePurchaseList(event);
             }
+        }
+    },
+    updateBarrierOffsetInput() {
+        const trade_definition_block = this.workspace.getTradeDefinitionBlock();
+        if (!trade_definition_block) return;
+
+        const trade_type_block = trade_definition_block.getChildByType('trade_definition_tradetype');
+        const trade_type = trade_type_block?.getFieldValue('TRADETYPE_LIST');
+        const is_higherlower = trade_type === 'higherlower';
+
+        if (is_higherlower && !this.getInput('BARRIER_OFFSET')) {
+            this.appendValueInput('BARRIER_OFFSET')
+                .setCheck(null)
+                .appendField('barrier offset:');
+        } else if (!is_higherlower && this.getInput('BARRIER_OFFSET')) {
+            this.removeInput('BARRIER_OFFSET', true);
         }
     },
     populatePurchaseList(event) {
@@ -85,6 +103,16 @@ window.Blockly.Blocks.purchase = {
 
 window.Blockly.JavaScript.javascriptGenerator.forBlock.purchase = block => {
     const purchaseList = block.getFieldValue('PURCHASE_LIST');
+    const barrierOffset = window.Blockly.JavaScript.javascriptGenerator.valueToCode(
+        block,
+        'BARRIER_OFFSET',
+        window.Blockly.JavaScript.javascriptGenerator.ORDER_ATOMIC
+    );
+
+    if (barrierOffset) {
+        const code = `Bot.purchase('${purchaseList}', ${barrierOffset});\n`;
+        return code;
+    }
 
     const code = `Bot.purchase('${purchaseList}');\n`;
     return code;

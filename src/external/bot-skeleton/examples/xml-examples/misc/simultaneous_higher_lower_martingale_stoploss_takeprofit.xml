@@ -1,0 +1,326 @@
+<xml xmlns="http://www.w3.org/1999/xhtml" collection="false">
+  <block type="trade_definition" id="sim-hl-mart-tp-sl" x="0" y="0">
+    <statement name="TRADE_OPTIONS">
+      <block type="trade_definition_market" deletable="false" movable="false">
+        <field name="MARKET_LIST">volatility</field>
+        <field name="SUBMARKET_LIST">volatility_index</field>
+        <field name="SYMBOL_LIST">R_100</field>
+        <next>
+          <block type="trade_definition_tradetype" deletable="false" movable="false">
+            <field name="TRADETYPECAT_LIST">callput</field>
+            <field name="TRADETYPE_LIST">higherlower</field>
+            <next>
+              <block type="trade_definition_contracttype" deletable="false" movable="false">
+                <field name="TYPE_LIST">both</field>
+                <next>
+                  <block type="trade_definition_candleinterval" deletable="false" movable="false">
+                    <field name="CANDLEINTERVAL_LIST">60</field>
+                    <next>
+                      <block type="trade_definition_restartbuysell" deletable="false" movable="false">
+                        <field name="TIME_MACHINE_ENABLED">FALSE</field>
+                        <next>
+                          <block type="trade_definition_restartonerror" deletable="false" movable="false">
+                            <field name="RESTARTONERROR">TRUE</field>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+    <statement name="SUBMARKET">
+      <block type="variables_set" id="v_init_stake">
+        <field name="VAR">initialStake</field>
+        <value name="VALUE">
+          <block type="math_number" id="v_init_stake_val">
+            <field name="NUM">1</field>
+          </block>
+        </value>
+        <next>
+          <block type="variables_set" id="v_trade_stake">
+            <field name="VAR">tradeStake</field>
+            <value name="VALUE">
+              <block type="variables_get" id="v_trade_stake_val">
+                <field name="VAR">initialStake</field>
+              </block>
+            </value>
+            <next>
+              <block type="variables_set" id="v_stop_loss">
+                <field name="VAR">stopLoss</field>
+                <value name="VALUE">
+                  <block type="math_number" id="v_stop_loss_val">
+                    <field name="NUM">50</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="variables_set" id="v_take_profit">
+                    <field name="VAR">takeProfit</field>
+                    <value name="VALUE">
+                      <block type="math_number" id="v_take_profit_val">
+                        <field name="NUM">100</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="variables_set" id="v_max_martingale">
+                        <field name="VAR">maxMartingale</field>
+                        <value name="VALUE">
+                          <block type="math_number" id="v_max_martingale_val">
+                            <field name="NUM">5</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="variables_set" id="v_martingale_count">
+                            <field name="VAR">martingaleCount</field>
+                            <value name="VALUE">
+                              <block type="math_number" id="v_martingale_count_val">
+                                <field name="NUM">0</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="trade_definition_tradeoptions" id="v_trade_opts">
+                                <mutation has_first_barrier="true" has_second_barrier="false" has_prediction="false"></mutation>
+                                <field name="DURATIONTYPE_LIST">t</field>
+                                <field name="CURRENCY_LIST">USD</field>
+                                <field name="BARRIEROFFSETTYPE_LIST">+</field>
+                                <value name="DURATION">
+                                  <shadow type="math_number_positive">
+                                    <field name="NUM">5</field>
+                                  </shadow>
+                                </value>
+                                <value name="AMOUNT">
+                                  <block type="variables_get" id="v_stake_ref">
+                                    <field name="VAR">tradeStake</field>
+                                  </block>
+                                </value>
+                                <value name="BARRIEROFFSET">
+                                  <shadow type="math_number_positive">
+                                    <field name="NUM">1</field>
+                                  </shadow>
+                                </value>
+                                <field name="AMOUNT_LIMITS"></field>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="during_purchase" x="720" y="0">
+    <statement name="DURING_PURCHASE_STACK">
+      <block type="controls_if" id="dp-check-sell">
+        <value name="IF0">
+          <block type="check_sell" id="dp-check-sell-cond"></block>
+        </value>
+        <statement name="DO0">
+          <block type="sell_at_market" id="dp-sell-btn"></block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+  <block type="before_purchase" id="bp-sim-hl" x="0" y="576">
+    <statement name="BEFOREPURCHASE_STACK">
+      <block type="purchase" id="bp-call-purchase">
+        <field name="PURCHASE_LIST">CALL</field>
+        <value name="BARRIER_OFFSET">
+          <block type="math_number" id="bp-call-barrier">
+            <field name="NUM">1</field>
+          </block>
+        </value>
+      </block>
+      <next>
+        <block type="purchase" id="bp-put-purchase">
+          <field name="PURCHASE_LIST">PUT</field>
+          <value name="BARRIER_OFFSET">
+            <block type="math_single" id="bp-put-barrier">
+              <field name="OP">NEG</field>
+              <value name="NUM">
+                <block type="math_number" id="bp-put-barrier-val">
+                  <field name="NUM">1</field>
+                </block>
+              </value>
+            </block>
+          </value>
+        </block>
+      </next>
+    </statement>
+  </block>
+  <block type="after_purchase" id="ap-sim-hl" x="0" y="720">
+    <statement name="AFTERPURCHASE_STACK">
+      <block type="controls_if" id="ap-stop-loss-check">
+        <value name="IF0">
+          <block type="logic_compare" id="ap-sl-compare">
+            <field name="OP">LTE</field>
+            <value name="A">
+              <block type="total_profit" id="ap-total-profit"></block>
+            </value>
+            <value name="B">
+              <block type="math_single" id="ap-sl-neg">
+                <field name="OP">NEG</field>
+                <value name="NUM">
+                  <block type="variables_get" id="ap-sl-var">
+                    <field name="VAR">stopLoss</field>
+                  </block>
+                </value>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO0">
+          <block type="notify" id="ap-sl-notify">
+            <field name="NOTIFICATION_TYPE">warn</field>
+            <field name="NOTIFICATION_SOUND">silent</field>
+            <value name="MESSAGE">
+              <block type="text_join" id="ap-sl-msg">
+                <mutation items="2"></mutation>
+                <value name="ADD0">
+                  <block type="text" id="ap-sl-msg1">
+                    <field name="TEXT">Stop loss triggered. Total profit: </field>
+                  </block>
+                </value>
+                <value name="ADD1">
+                  <block type="total_profit_string" id="ap-sl-msg2"></block>
+                </value>
+              </block>
+            </value>
+          </block>
+        </statement>
+        <mutation else="1"></mutation>
+        <statement name="ELSE">
+          <block type="controls_if" id="ap-take-profit-check">
+            <value name="IF0">
+              <block type="logic_compare" id="ap-tp-compare">
+                <field name="OP">GTE</field>
+                <value name="A">
+                  <block type="total_profit" id="ap-tp-profit"></block>
+                </value>
+                <value name="B">
+                  <block type="variables_get" id="ap-tp-var">
+                    <field name="VAR">takeProfit</field>
+                  </block>
+                </value>
+              </block>
+            </value>
+            <statement name="DO0">
+              <block type="notify" id="ap-tp-notify">
+                <field name="NOTIFICATION_TYPE">success</field>
+                <field name="NOTIFICATION_SOUND">silent</field>
+                <value name="MESSAGE">
+                  <block type="text_join" id="ap-tp-msg">
+                    <mutation items="2"></mutation>
+                    <value name="ADD0">
+                      <block type="text" id="ap-tp-msg1">
+                        <field name="TEXT">Take profit reached. Total profit: </field>
+                      </block>
+                    </value>
+                    <value name="ADD1">
+                      <block type="total_profit_string" id="ap-tp-msg2"></block>
+                    </value>
+                  </block>
+                </value>
+              </block>
+            </statement>
+            <mutation else="1"></mutation>
+            <statement name="ELSE">
+              <block type="controls_if" id="ap-martingale-check">
+                <value name="IF0">
+                  <block type="contract_check_result" id="ap-result-win">
+                    <field name="CHECK_RESULT">win</field>
+                  </block>
+                </value>
+                <statement name="DO0">
+                  <block type="variables_set" id="ap-reset-stake-win">
+                    <field name="VAR">tradeStake</field>
+                    <value name="VALUE">
+                      <block type="variables_get" id="ap-reset-init">
+                        <field name="VAR">initialStake</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="variables_set" id="ap-reset-count">
+                        <field name="VAR">martingaleCount</field>
+                        <value name="VALUE">
+                          <block type="math_number" id="ap-reset-count-val">
+                            <field name="NUM">0</field>
+                          </block>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+                <mutation else="1"></mutation>
+                <statement name="ELSE">
+                  <block type="controls_if" id="ap-martingale-limit-check">
+                    <value name="IF0">
+                      <block type="logic_compare" id="ap-martingale-count-compare">
+                        <field name="OP">LT</field>
+                        <value name="A">
+                          <block type="variables_get" id="ap-martingale-count-ref">
+                            <field name="VAR">martingaleCount</field>
+                          </block>
+                        </value>
+                        <value name="B">
+                          <block type="variables_get" id="ap-max-martingale-ref">
+                            <field name="VAR">maxMartingale</field>
+                          </block>
+                        </value>
+                      </block>
+                    </value>
+                    <statement name="DO0">
+                      <block type="math_change" id="ap-martingale-count-increment">
+                        <field name="VAR">martingaleCount</field>
+                        <value name="DELTA">
+                          <block type="math_number" id="ap-martingale-increment-val">
+                            <field name="NUM">1</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="math_change" id="ap-martingale-stake-doubling">
+                            <field name="VAR">tradeStake</field>
+                            <value name="DELTA">
+                              <block type="math_arithmetic" id="ap-martingale-mult">
+                                <field name="OP">MULTIPLY</field>
+                                <value name="A">
+                                  <shadow type="math_number">
+                                    <field name="NUM">1</field>
+                                  </shadow>
+                                  <block type="variables_get" id="ap-martingale-stake">
+                                    <field name="VAR">tradeStake</field>
+                                  </block>
+                                </value>
+                                <value name="B">
+                                  <shadow type="math_number">
+                                    <field name="NUM">2</field>
+                                  </shadow>
+                                </value>
+                              </block>
+                            </value>
+                          </block>
+                        </next>
+                      </block>
+                    </statement>
+                  </block>
+                </statement>
+                <next>
+                  <block type="trade_again" id="ap-trade-again"></block>
+                </next>
+              </block>
+            </statement>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+</xml>

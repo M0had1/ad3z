@@ -43,7 +43,7 @@ export const tradeOptionToProposal = (trade_option, purchase_reference) =>
         return proposal;
     });
 
-export const tradeOptionToBuy = (contract_type, trade_option) => {
+export const tradeOptionToBuy = (contract_type, trade_option, barrier_override) => {
     const buy = {
         buy: '1',
         price: trade_option.amount,
@@ -61,8 +61,13 @@ export const tradeOptionToBuy = (contract_type, trade_option) => {
     if (trade_option.prediction !== undefined) {
         buy.parameters.selected_tick = trade_option.prediction;
     }
-    if (!['TICKLOW', 'TICKHIGH'].includes(contract_type) && trade_option.prediction !== undefined) {
+    if (
+        !['TICKLOW', 'TICKHIGH'].includes(contract_type) &&
+        trade_option.prediction !== undefined
+    ) {
         buy.parameters.barrier = trade_option.prediction;
+    } else if (barrier_override !== undefined) {
+        buy.parameters.barrier = barrier_override;
     } else if (trade_option.barrierOffset !== undefined) {
         buy.parameters.barrier = trade_option.barrierOffset;
     }
