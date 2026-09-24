@@ -217,27 +217,42 @@ export default class QuickStrategyStore implements IQuickStrategyStore {
             if (before_purchase_block) {
                 const statement = before_purchase_block.querySelector('statement[name="BEFOREPURCHASE_STACK"]');
                 if (statement) {
-                    // Clear existing purchase blocks
+                    const createOffsetValue = (name: string, value: number | string = 1) => {
+                        const valueNode = document.createElement('value');
+                        valueNode.setAttribute('name', name);
+
+                        const shadowNode = document.createElement('shadow');
+                        shadowNode.setAttribute('type', 'math_number');
+
+                        const fieldNode = document.createElement('field');
+                        fieldNode.setAttribute('name', 'NUM');
+                        fieldNode.textContent = String(value ?? 1);
+
+                        shadowNode.appendChild(fieldNode);
+                        valueNode.appendChild(shadowNode);
+                        return valueNode;
+                    };
+
                     statement.innerHTML = '';
-                    
-                    // Create hedging purchase block
+
                     const purchase_block = document.createElement('block');
                     purchase_block.setAttribute('type', 'purchase');
                     purchase_block.setAttribute('id', 'purchase_hedging_' + Date.now());
-                    
-                    // Add mutation for hedging
+
                     const mutation = document.createElement('mutation');
                     mutation.setAttribute('hedging', 'true');
-                    mutation.setAttribute('higher_offset', higher_offset || '1');
-                    mutation.setAttribute('lower_offset', lower_offset || '1');
+                    mutation.setAttribute('higher_offset', String(higher_offset ?? 1));
+                    mutation.setAttribute('lower_offset', String(lower_offset ?? 1));
                     purchase_block.appendChild(mutation);
-                    
-                    // Add field for hedging
+
                     const field = document.createElement('field');
                     field.setAttribute('name', 'PURCHASE_LIST');
                     field.textContent = 'hedging';
                     purchase_block.appendChild(field);
-                    
+
+                    purchase_block.appendChild(createOffsetValue('HIGHER_OFFSET', higher_offset ?? 1));
+                    purchase_block.appendChild(createOffsetValue('LOWER_OFFSET', lower_offset ?? 1));
+
                     statement.appendChild(purchase_block);
                 }
             }

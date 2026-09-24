@@ -1,4 +1,5 @@
 import { localize } from '@deriv-com/translations';
+import { getHedgingPurchaseStatements } from '../../../../services/tradeEngine/utils/hedging';
 import { getContractTypeOptions } from '../../../shared';
 import { excludeOptionFromContextMenu, modifyContextMenu } from '../../../utils';
 
@@ -168,7 +169,8 @@ window.Blockly.Blocks.purchase = {
 window.Blockly.JavaScript.javascriptGenerator.forBlock.purchase = block => {
     const purchaseList = block.getFieldValue('PURCHASE_LIST');
 
-    // Handle hedging mode - purchase both CALL and PUT simultaneously
+    // Handle hedging mode - purchase both CALL and PUT simultaneously with independent
+    // barrier offsets for each side so the real trade request matches the user config.
     if (purchaseList === 'hedging') {
         const higherOffset = window.Blockly.JavaScript.javascriptGenerator.valueToCode(
             block,
@@ -181,7 +183,7 @@ window.Blockly.JavaScript.javascriptGenerator.forBlock.purchase = block => {
             window.Blockly.JavaScript.javascriptGenerator.ORDER_ATOMIC
         ) || '1';
 
-        const code = `Bot.purchase('CALL', ${higherOffset});\nBot.purchase('PUT', -${lowerOffset});\n`;
+        const { code } = getHedgingPurchaseStatements({ higherOffset, lowerOffset });
         return code;
     }
 
