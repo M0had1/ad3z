@@ -1,4 +1,3 @@
-import { BOT_SPEED } from '@/constants/bot-speed';
 import { LogTypes } from '../../../constants/messages';
 import { api_base } from '../../api/api-base';
 import { contract as broadcastContract, contractStatus, info, log } from '../utils/broadcast';
@@ -21,10 +20,6 @@ export default Engine =>
         }
 
         purchase(contract_type, barrier_offset) {
-            if (this.speed_mode === BOT_SPEED.ULTRA_FAST) {
-                return this.enqueueUltraPurchase(contract_type, barrier_offset);
-            }
-
             const currentScope = this.store.getState().scope;
             
             // Detect new before_purchase round
@@ -213,6 +208,7 @@ export default Engine =>
                 buy,
             });
             this.ultra_contract_ids.add(String(buy.contract_id));
+            this.contractId = buy.contract_id;
             this.store.dispatch(purchaseSuccessful());
             broadcastContract({
                 accountID: api_base.account_info.loginid,

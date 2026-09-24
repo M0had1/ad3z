@@ -21,6 +21,7 @@ export default Engine =>
             this.tick_waiters = [];
             this.latest_tick = null;
             this.pending_tick = null;
+            this.current_tick = null;
             this.last_queued_tick_epoch = null;
             this.last_processed_tick_epoch = null;
         }
@@ -82,10 +83,14 @@ export default Engine =>
             if (this.pending_tick) {
                 const tick = this.pending_tick;
                 this.pending_tick = null;
+                this.current_tick = tick;
                 return Promise.resolve(tick);
             }
 
-            return this.waitForNextTick();
+            return this.waitForNextTick().then(tick => {
+                this.current_tick = tick;
+                return tick;
+            });
         }
 
         getNextTick(raw = true, toString = false) {
@@ -150,6 +155,11 @@ export default Engine =>
         }
 
         getLastTick(raw, toString = false) {
+            if (this.speed_mode === BOT_SPEED.ULTRA_FAST && this.current_tick) {
+                const last_tick = raw ? this.current_tick : this.current_tick.quote;
+                return Promise.resolve(toString && !raw ? last_tick.toFixed(this.getPipSize()) : last_tick);
+            }
+
             return new Promise((resolve, reject) =>
                 this.$scope.ticksService
                     .request({ symbol: this.symbol })
