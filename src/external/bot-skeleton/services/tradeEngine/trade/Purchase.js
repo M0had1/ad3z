@@ -76,7 +76,7 @@ export default Engine =>
                 });
 
                 if (!this.options.timeMachineEnabled) {
-                    return doUntilDone(action).then(onSuccess);
+                    return doUntilDone(action, undefined, api_base).then(onSuccess);
                 }
 
                 return recoverFromError(
@@ -112,7 +112,7 @@ export default Engine =>
             });
 
             if (!this.options.timeMachineEnabled) {
-                return doUntilDone(action).then(onSuccess);
+                return doUntilDone(action, undefined, api_base).then(onSuccess);
             }
 
             return recoverFromError(
@@ -193,7 +193,7 @@ export default Engine =>
                 data: ask_price,
             });
 
-            const response = await doUntilDone(action);
+            const response = await doUntilDone(action, undefined, api_base);
             const { buy } = response;
 
             if (!buy) {

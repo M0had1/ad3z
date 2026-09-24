@@ -67,7 +67,13 @@ export const tradeOptionToBuy = (contract_type, trade_option, barrier_override) 
     ) {
         buy.parameters.barrier = trade_option.prediction;
     } else if (barrier_override !== undefined) {
-        buy.parameters.barrier = barrier_override;
+        const barrier_value = Number(barrier_override);
+        if (['CALL', 'PUT'].includes(contract_type) && Number.isFinite(barrier_value)) {
+            const barrier_sign = contract_type === 'CALL' ? '+' : '-';
+            buy.parameters.barrier = `${barrier_sign}${Math.abs(barrier_value)}`;
+        } else {
+            buy.parameters.barrier = barrier_override;
+        }
     } else if (trade_option.barrierOffset !== undefined) {
         buy.parameters.barrier = trade_option.barrierOffset;
     }
