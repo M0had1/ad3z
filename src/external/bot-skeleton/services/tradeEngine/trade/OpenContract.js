@@ -25,6 +25,7 @@ export default Engine =>
                     if (this.speed_mode === BOT_SPEED.ULTRA_FAST) {
                         if (this.isSold) {
                             this.ultra_contract_ids.delete(String(contract.contract_id));
+                            this.contractId = '';
                             this.updateTotals(contract);
                             contractStatus({
                                 id: 'contract.sold',
@@ -37,6 +38,8 @@ export default Engine =>
                             }
 
                             this.store.dispatch(sell());
+                        } else {
+                            this.store.dispatch(openContractReceived());
                         }
                         return;
                     }
@@ -81,7 +84,7 @@ export default Engine =>
 
         expectedContractId(contractId) {
             if (this.speed_mode === BOT_SPEED.ULTRA_FAST) {
-                return this.ultra_contract_ids?.has(String(contractId));
+                return this.contractId === contractId || this.ultra_contract_ids?.has(String(contractId));
             }
             return this.contractId && contractId === this.contractId;
         }
