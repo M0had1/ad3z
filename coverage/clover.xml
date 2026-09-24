@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1790261880866" clover="3.2.0">
-  <project timestamp="1790261880866" name="All files">
-    <metrics statements="24" coveredstatements="24" conditionals="9" coveredconditionals="5" methods="2" coveredmethods="2" elements="35" coveredelements="31" complexity="0" loc="24" ncloc="24" packages="1" files="1" classes="1"/>
+<coverage generated="1790262706303" clover="3.2.0">
+  <project timestamp="1790262706304" name="All files">
+    <metrics statements="25" coveredstatements="25" conditionals="11" coveredconditionals="5" methods="2" coveredmethods="2" elements="38" coveredelements="32" complexity="0" loc="25" ncloc="25" packages="1" files="1" classes="1"/>
     <file name="hedging.js" path="C:\Users\Mohamed\Downloads\adez\ad3z\src\external\bot-skeleton\services\tradeEngine\utils\hedging.js">
-      <metrics statements="24" coveredstatements="24" conditionals="9" coveredconditionals="5" methods="2" coveredmethods="2"/>
-      <line num="1" count="1" type="cond" truecount="1" falsecount="1"/>
+      <metrics statements="25" coveredstatements="25" conditionals="11" coveredconditionals="5" methods="2" coveredmethods="2"/>
+      <line num="1" count="1" type="cond" truecount="1" falsecount="2"/>
       <line num="2" count="6" type="stmt"/>
-      <line num="3" count="6" type="stmt"/>
-      <line num="4" count="6" type="cond" truecount="1" falsecount="0"/>
-      <line num="5" count="1" type="stmt"/>
-      <line num="6" count="1" type="cond" truecount="1" falsecount="0"/>
-      <line num="7" count="5" type="stmt"/>
-      <line num="8" count="6" type="cond" truecount="1" falsecount="0"/>
-      <line num="9" count="6" type="stmt"/>
-      <line num="10" count="1" type="stmt"/>
-      <line num="11" count="1" type="cond" truecount="1" falsecount="3"/>
-      <line num="12" count="3" type="stmt"/>
+      <line num="3" count="6" type="cond" truecount="0" falsecount="1"/>
+      <line num="4" count="6" type="stmt"/>
+      <line num="5" count="6" type="cond" truecount="1" falsecount="0"/>
+      <line num="6" count="1" type="stmt"/>
+      <line num="7" count="1" type="cond" truecount="1" falsecount="0"/>
+      <line num="8" count="5" type="stmt"/>
+      <line num="9" count="6" type="cond" truecount="1" falsecount="0"/>
+      <line num="10" count="6" type="stmt"/>
+      <line num="11" count="1" type="stmt"/>
+      <line num="12" count="1" type="cond" truecount="1" falsecount="3"/>
       <line num="13" count="3" type="stmt"/>
       <line num="14" count="3" type="stmt"/>
       <line num="15" count="3" type="stmt"/>
@@ -28,6 +28,7 @@
       <line num="22" count="3" type="stmt"/>
       <line num="23" count="3" type="stmt"/>
       <line num="24" count="3" type="stmt"/>
+      <line num="25" count="3" type="stmt"/>
     </file>
   </project>
 </coverage>

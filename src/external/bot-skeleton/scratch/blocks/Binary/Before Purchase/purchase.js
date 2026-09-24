@@ -34,7 +34,7 @@ window.Blockly.Blocks.purchase = {
         container.setAttribute('hedging', is_hedging);
         if (is_hedging) {
             container.setAttribute('higher_offset', this.getFieldValue('HIGHER_OFFSET') || '1');
-            container.setAttribute('lower_offset', this.getFieldValue('LOWER_OFFSET') || '1');
+            container.setAttribute('lower_offset', this.getFieldValue('LOWER_OFFSET') || '-1');
         }
         return container;
     },
@@ -43,7 +43,7 @@ window.Blockly.Blocks.purchase = {
         if (is_hedging) {
             this.updateHedgingInputs(true);
             this.setFieldValue(xmlElement.getAttribute('higher_offset') || '1', 'HIGHER_OFFSET');
-            this.setFieldValue(xmlElement.getAttribute('lower_offset') || '1', 'LOWER_OFFSET');
+            this.setFieldValue(xmlElement.getAttribute('lower_offset') || '-1', 'LOWER_OFFSET');
         }
     },
     meta() {
@@ -103,7 +103,7 @@ window.Blockly.Blocks.purchase = {
             this.appendDummyInput('LOWER_LABEL').appendField(localize('Lower offset:'));
             this.appendValueInput('LOWER_OFFSET')
                 .setCheck('Number')
-                .appendField(new window.Blockly.FieldNumber(1, 0), 'LOWER_OFFSET');
+                .appendField(new window.Blockly.FieldNumber(-1, -Infinity, 0), 'LOWER_OFFSET');
         } else if (!is_higherlower && this.getInput('HIGHER_OFFSET')) {
             this.removeInput('HIGHER_LABEL', true);
             this.removeInput('HIGHER_OFFSET', true);
@@ -121,7 +121,7 @@ window.Blockly.Blocks.purchase = {
                 this.appendDummyInput('LOWER_LABEL').appendField(localize('Lower offset:'));
                 this.appendValueInput('LOWER_OFFSET')
                     .setCheck('Number')
-                    .appendField(new window.Blockly.FieldNumber(1, 0), 'LOWER_OFFSET');
+                    .appendField(new window.Blockly.FieldNumber(-1, -Infinity, 0), 'LOWER_OFFSET');
             }
         } else {
             this.removeInput('HIGHER_LABEL', true);

@@ -1,18 +1,19 @@
-export const normalizeHedgingOffset = (offset, fallback = 1) => {
+export const normalizeHedgingOffset = (offset, fallback = 1, sign = 1) => {
     const value = Number(offset);
+    const fallbackValue = Math.abs(Number(fallback)) || 1;
 
     if (!Number.isFinite(value)) {
-        return Number(fallback);
+        return sign * fallbackValue;
     }
 
-    return Math.abs(value) || Number(fallback);
+    return sign * (Math.abs(value) || fallbackValue);
 };
 
 export const getHedgingPurchaseStatements = ({ higherOffset, lowerOffset, fallbackHigher = 1, fallbackLower = 1 } = {}) => {
-    const higher = normalizeHedgingOffset(higherOffset, fallbackHigher);
-    const lower = normalizeHedgingOffset(lowerOffset, fallbackLower);
+    const higher = normalizeHedgingOffset(higherOffset, fallbackHigher, 1);
+    const lower = normalizeHedgingOffset(lowerOffset, fallbackLower, -1);
     const callBarrier = higher;
-    const putBarrier = -lower;
+    const putBarrier = lower;
 
     return {
         higherOffset: higher,

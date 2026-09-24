@@ -242,7 +242,7 @@ export default class QuickStrategyStore implements IQuickStrategyStore {
                     const mutation = document.createElement('mutation');
                     mutation.setAttribute('hedging', 'true');
                     mutation.setAttribute('higher_offset', String(higher_offset ?? 1));
-                    mutation.setAttribute('lower_offset', String(lower_offset ?? 1));
+                    mutation.setAttribute('lower_offset', String(lower_offset ?? -1));
                     purchase_block.appendChild(mutation);
 
                     const field = document.createElement('field');
@@ -251,7 +251,7 @@ export default class QuickStrategyStore implements IQuickStrategyStore {
                     purchase_block.appendChild(field);
 
                     purchase_block.appendChild(createOffsetValue('HIGHER_OFFSET', higher_offset ?? 1));
-                    purchase_block.appendChild(createOffsetValue('LOWER_OFFSET', lower_offset ?? 1));
+                    purchase_block.appendChild(createOffsetValue('LOWER_OFFSET', lower_offset ?? -1));
 
                     statement.appendChild(purchase_block);
                 }
