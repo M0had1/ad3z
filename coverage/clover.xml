@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1790271092130" clover="3.2.0">
-  <project timestamp="1790271092131" name="All files">
+<coverage generated="1790271847033" clover="3.2.0">
+  <project timestamp="1790271847034" name="All files">
     <metrics statements="25" coveredstatements="25" conditionals="11" coveredconditionals="5" methods="2" coveredmethods="2" elements="38" coveredelements="32" complexity="0" loc="25" ncloc="25" packages="1" files="1" classes="1"/>
     <file name="hedging.js" path="C:\Users\Mohamed\Downloads\adez\ad3z\src\external\bot-skeleton\services\tradeEngine\utils\hedging.js">
       <metrics statements="25" coveredstatements="25" conditionals="11" coveredconditionals="5" methods="2" coveredmethods="2"/>

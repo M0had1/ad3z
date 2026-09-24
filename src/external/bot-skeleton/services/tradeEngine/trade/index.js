@@ -97,6 +97,14 @@ export default class TradeEngine extends Balance(Purchase(Sell(OpenContract(Prop
         globalObserver.emit('bot.running');
 
         const validated_trade_options = this.validateTradeOptions(tradeOptions);
+
+        if (validated_trade_options.speed_mode === BOT_SPEED.ULTRA_FAST && this.tradeOptions && api_base.is_running) {
+            this.tradeOptions = { ...validated_trade_options, symbol: this.options.symbol };
+            this.checkLimits(validated_trade_options);
+            this.makeDirectPurchaseDecision();
+            return;
+        }
+
         this.setSpeedMode(validated_trade_options.speed_mode);
         this.clearTickQueue();
 
