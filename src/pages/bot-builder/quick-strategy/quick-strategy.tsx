@@ -139,6 +139,13 @@ const FormikWrapper: React.FC<TFormikWrapper> = observer(({ children }) => {
                             max_error = getErrorMessage('MAX', max, 'LAST_DIGIT_PREDICTION');
                             integer_error_message = localize('Enter a value from 0 to 9.');
                         }
+                        if (
+                            should_validate &&
+                            (field.name === 'higher_offset' || field.name === 'lower_offset') &&
+                            formikData?.type === 'hedging'
+                        ) {
+                            schema = schema.moreThan(0, localize('Barrier offset must be greater than 0.'));
+                        }
                         if (should_validate) {
                             field.validation.forEach(validation => {
                                 if (typeof validation === 'string') {

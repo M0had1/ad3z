@@ -19,4 +19,13 @@ describe('hedging purchase logic', () => {
         expect(result.callBarrier).toBe(1);
         expect(result.putBarrier).toBe(-1);
     });
+
+    it('rejects zero-value barriers before a live buy request is sent', () => {
+        const result = getHedgingPurchaseStatements({ higherOffset: 0, lowerOffset: 0 });
+
+        expect(result.higherOffset).toBe(1);
+        expect(result.lowerOffset).toBe(1);
+        expect(result.callBarrier).toBe(1);
+        expect(result.putBarrier).toBe(-1);
+    });
 });
