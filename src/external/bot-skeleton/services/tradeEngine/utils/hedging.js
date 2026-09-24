@@ -12,14 +12,14 @@ export const normalizeHedgingOffset = (offset, fallback = 1, sign = 1) => {
 export const getHedgingPurchaseStatements = ({ higherOffset, lowerOffset, fallbackHigher = 1, fallbackLower = 1 } = {}) => {
     const higher = normalizeHedgingOffset(higherOffset, fallbackHigher, 1);
     const lower = normalizeHedgingOffset(lowerOffset, fallbackLower, -1);
-    const callBarrier = higher;
-    const putBarrier = lower;
+    const callBarrier = `+${higher}`;
+    const putBarrier = `${lower}`;
 
     return {
         higherOffset: higher,
         lowerOffset: lower,
         callBarrier,
         putBarrier,
-        code: `Bot.purchase('CALL', ${callBarrier});\nBot.purchase('PUT', ${putBarrier});\n`,
+        code: `Bot.purchase('CALL', '${callBarrier}');\nBot.purchase('PUT', '${putBarrier}');\n`,
     };
 };

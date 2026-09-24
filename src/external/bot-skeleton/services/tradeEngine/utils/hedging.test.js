@@ -6,9 +6,9 @@ describe('hedging purchase logic', () => {
 
         expect(result.higherOffset).toBe(3);
         expect(result.lowerOffset).toBe(-2);
-        expect(result.callBarrier).toBe(3);
-        expect(result.putBarrier).toBe(-2);
-        expect(result.code).toBe("Bot.purchase('CALL', 3);\nBot.purchase('PUT', -2);\n");
+        expect(result.callBarrier).toBe('+3');
+        expect(result.putBarrier).toBe('-2');
+        expect(result.code).toBe("Bot.purchase('CALL', '+3');\nBot.purchase('PUT', '-2');\n");
     });
 
     it('falls back safely when values are missing or invalid', () => {
@@ -16,8 +16,8 @@ describe('hedging purchase logic', () => {
 
         expect(result.higherOffset).toBe(1);
         expect(result.lowerOffset).toBe(-1);
-        expect(result.callBarrier).toBe(1);
-        expect(result.putBarrier).toBe(-1);
+        expect(result.callBarrier).toBe('+1');
+        expect(result.putBarrier).toBe('-1');
     });
 
     it('rejects zero-value barriers before a live buy request is sent', () => {
@@ -25,7 +25,7 @@ describe('hedging purchase logic', () => {
 
         expect(result.higherOffset).toBe(1);
         expect(result.lowerOffset).toBe(-1);
-        expect(result.callBarrier).toBe(1);
-        expect(result.putBarrier).toBe(-1);
+        expect(result.callBarrier).toBe('+1');
+        expect(result.putBarrier).toBe('-1');
     });
 });
